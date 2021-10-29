@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserManagementClient interface {
-	CreateNewIser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error)
+	CreateNewUser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error)
 }
 
 type userManagementClient struct {
@@ -29,9 +29,9 @@ func NewUserManagementClient(cc grpc.ClientConnInterface) UserManagementClient {
 	return &userManagementClient{cc}
 }
 
-func (c *userManagementClient) CreateNewIser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error) {
+func (c *userManagementClient) CreateNewUser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error) {
 	out := new(User)
-	err := c.cc.Invoke(ctx, "/usermgmt.UserManagement/CreateNewIser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/usermgmt.UserManagement/CreateNewUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *userManagementClient) CreateNewIser(ctx context.Context, in *NewUser, o
 // All implementations must embed UnimplementedUserManagementServer
 // for forward compatibility
 type UserManagementServer interface {
-	CreateNewIser(context.Context, *NewUser) (*User, error)
+	CreateNewUser(context.Context, *NewUser) (*User, error)
 	mustEmbedUnimplementedUserManagementServer()
 }
 
@@ -50,8 +50,8 @@ type UserManagementServer interface {
 type UnimplementedUserManagementServer struct {
 }
 
-func (UnimplementedUserManagementServer) CreateNewIser(context.Context, *NewUser) (*User, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateNewIser not implemented")
+func (UnimplementedUserManagementServer) CreateNewUser(context.Context, *NewUser) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateNewUser not implemented")
 }
 func (UnimplementedUserManagementServer) mustEmbedUnimplementedUserManagementServer() {}
 
@@ -66,20 +66,20 @@ func RegisterUserManagementServer(s grpc.ServiceRegistrar, srv UserManagementSer
 	s.RegisterService(&UserManagement_ServiceDesc, srv)
 }
 
-func _UserManagement_CreateNewIser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserManagement_CreateNewUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(NewUser)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserManagementServer).CreateNewIser(ctx, in)
+		return srv.(UserManagementServer).CreateNewUser(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/usermgmt.UserManagement/CreateNewIser",
+		FullMethod: "/usermgmt.UserManagement/CreateNewUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserManagementServer).CreateNewIser(ctx, req.(*NewUser))
+		return srv.(UserManagementServer).CreateNewUser(ctx, req.(*NewUser))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -92,8 +92,8 @@ var UserManagement_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*UserManagementServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateNewIser",
-			Handler:    _UserManagement_CreateNewIser_Handler,
+			MethodName: "CreateNewUser",
+			Handler:    _UserManagement_CreateNewUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

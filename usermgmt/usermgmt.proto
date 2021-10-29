@@ -6,7 +6,7 @@ package usermgmt;
 option go_package = "/gRPC-usermngm;gRPC_usermngm";
 
 service UserManagement{
-    rpc CreateNewIser (NewUser) returns (User){}
+    rpc CreateNewUser (NewUser) returns (User){}
 }
 message NewUser{
     string name = 1;
