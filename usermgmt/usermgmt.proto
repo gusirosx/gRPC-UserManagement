@@ -3,7 +3,7 @@ syntax = "proto3";
 package usermgmt;
 
 
-option go_package = "github.com/gusirosx/gRPC-usermngm;gRPC_usermngm";
+option go_package = "/gRPC-usermngm;gRPC_usermngm";
 
 service UserManagement{
     rpc CreateNewIser (NewUser) returns (User){}
