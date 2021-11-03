@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -44,4 +45,13 @@ func main() {
 		AGE: %d
 		ID: %d`, r.GetName(), r.GetAge(), r.GetId())
 	}
+	// Initialize an empty message as input to the call to get users
+	params := &pb.GetUsersParams{}
+	r, err := c.GetUsers(ctx, params)
+	if err != nil {
+		log.Fatalf("could not retrieve users: %v", err)
+	}
+	log.Print("\nUSER LIST: \n")
+	// this call should retur an array of users that are stored within the user management servers
+	fmt.Printf("r.GetUsers(): %v\n", r.GetUsers())
 }
