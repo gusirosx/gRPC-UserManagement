@@ -56,13 +56,7 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 		if os.IsNotExist(err) {
 			log.Print("File not found. Creating a new file")
 			users_list.Users = append(users_list.Users, created_user)
-			jsonBytes, err := protojson.Marshal(users_list)
-			if err != nil {
-				log.Fatalf("JSON Marshaling failed: %v", err)
-			}
-			if err := ioutil.WriteFile("users.json", jsonBytes, 0664); err != nil {
-				log.Fatalf("Failed write to file: %v", err)
-			}
+			jsonMarshaling(users_list) // Marshal the users_list into json format
 			return created_user, nil
 		} else {
 			log.Fatalln("Error reading file: ", err)
@@ -72,6 +66,12 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 		log.Fatalf("Failed to parse user list: %v", err)
 	}
 	users_list.Users = append(users_list.Users, created_user)
+	jsonMarshaling(users_list) // Marshal the users_list into json format
+	return created_user, nil
+}
+
+// Marshal the users_list into json format
+func jsonMarshaling(users_list *pb.UserList) {
 	jsonBytes, err := protojson.Marshal(users_list)
 	if err != nil {
 		log.Fatalf("JSON Marshaling failed: %v", err)
@@ -79,7 +79,6 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 	if err := ioutil.WriteFile("users.json", jsonBytes, 0664); err != nil {
 		log.Fatalf("Failed write to file: %v", err)
 	}
-	return created_user, nil
 }
 
 // New Reciver function
