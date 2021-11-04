@@ -2,16 +2,15 @@ package main
 
 import (
 	"context"
-	"io/ioutil"
+	"fmt"
 	"log"
-	"math/rand"
 	"net"
 	"os"
 
 	pb "gRPC-usermngm/usermgmt"
 
+	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const (
@@ -25,6 +24,8 @@ func NewUserManagementServer() *UserManagementServer {
 
 //Implementation of the grpc service
 type UserManagementServer struct {
+	conn                *pgx.Conn
+	first_user_creation bool
 	pb.UnimplementedUserManagementServer
 }
 
@@ -35,68 +36,73 @@ func (server *UserManagementServer) Run() error {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	//Variable 's' is invoking the new server function from the grpc module
-	s := grpc.NewServer()
+	s := grpc.NewServer() //Variable 's' is invoking the new server function from the grpc module
 	//After initialize this new server we're going to register the server as a new grpc service
 	pb.RegisterUserManagementServer(s, server)
 	log.Printf("server listening at %v", lis.Addr())
-	//Call the server
-	return s.Serve(lis)
+	return s.Serve(lis) //Call the server
 }
 
 // When CreateNewUser function is called we should append any new users to the user management server user_list
 // When user is added, read full userlist from file into userlist struct, then append new user and write new userlist back to file
 func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser) (*pb.User, error) {
 	log.Printf("Received: %v", in.GetName())
-	readBytes, err := ioutil.ReadFile("users.json")
-	var users_list *pb.UserList = &pb.UserList{}
-	var user_id int32 = int32(rand.Intn(100))
-	created_user := &pb.User{Name: in.GetName(), Age: in.GetAge(), Id: user_id}
+	createSql := ` create table if not exists users(id SERIAL PRIMARY KEY, name text, age int);`
+	_, err := s.conn.Exec(context.Background(), createSql)
 	if err != nil {
-		if os.IsNotExist(err) {
-			log.Print("File not found. Creating a new file")
-			users_list.Users = append(users_list.Users, created_user)
-			jsonMarshaling(users_list) // Marshal the users_list into json format
-			return created_user, nil
-		} else {
-			log.Fatalln("Error reading file: ", err)
-		}
+		fmt.Fprintf(os.Stderr, "Table creation failed: %v\n", err)
+		os.Exit(1)
 	}
-	if err := protojson.Unmarshal(readBytes, users_list); err != nil {
-		log.Fatalf("Failed to parse user list: %v", err)
-	}
-	users_list.Users = append(users_list.Users, created_user)
-	jsonMarshaling(users_list) // Marshal the users_list into json format
-	return created_user, nil
-}
+	s.first_user_creation = false
 
-// Marshal the users_list into json format
-func jsonMarshaling(users_list *pb.UserList) {
-	jsonBytes, err := protojson.Marshal(users_list)
+	log.Printf("Received: %v", in.GetName())
+
+	created_user := &pb.User{Name: in.GetName(), Age: in.GetAge()}
+	tx, err := s.conn.Begin(context.Background())
 	if err != nil {
-		log.Fatalf("JSON Marshaling failed: %v", err)
+		log.Fatalf("conn.Begin failed: %v", err)
 	}
-	if err := ioutil.WriteFile("users.json", jsonBytes, 0664); err != nil {
-		log.Fatalf("Failed write to file: %v", err)
+
+	_, err = tx.Exec(context.Background(), "insert into users(name, age) values ($1,$2)",
+		created_user.Name, created_user.Age)
+	if err != nil {
+		log.Fatalf("tx.Exec failed: %v", err)
 	}
+	tx.Commit(context.Background())
+	return created_user, nil
 }
 
 // New Reciver function
 func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersParams) (*pb.UserList, error) {
-	jsonBytes, err := ioutil.ReadFile("users.json")
-	if err != nil {
-		log.Fatalf("Failed read from file: %v", err)
-	}
 	var users_list *pb.UserList = &pb.UserList{}
-	if err := protojson.Unmarshal(jsonBytes, users_list); err != nil {
-		log.Fatalf("Unmarshaling failed: %v", err)
+	rows, err := s.conn.Query(context.Background(), "select * from users")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		user := pb.User{}
+		err = rows.Scan(&user.Id, &user.Name, &user.Age)
+		if err != nil {
+			return nil, err
+		}
+		users_list.Users = append(users_list.Users, &user)
 	}
 	return users_list, nil
 }
 
 func main() {
 	//First instatiate a new User Management Server
+	//database_url := "postgres://username:password@localhost:5432/database_name"
+	database_url := "postgres://bob:admin@localhost:5432/postgres"
 	var user_mgmt_server *UserManagementServer = NewUserManagementServer()
+	conn, err := pgx.Connect(context.Background(), database_url)
+	if err != nil {
+		log.Fatalf("Unable to establish connection: %v", err)
+	}
+	defer conn.Close(context.Background())
+	user_mgmt_server.conn = conn
+	user_mgmt_server.first_user_creation = true
 	if err := user_mgmt_server.Run(); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
