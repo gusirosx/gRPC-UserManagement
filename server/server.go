@@ -7,7 +7,7 @@ import (
 	"net"
 	"os"
 
-	pb "gRPC-usermngm/usermgmt"
+	pb "gRPC-usermngm/proto"
 
 	"github.com/jackc/pgx/v4"
 	"google.golang.org/grpc"
