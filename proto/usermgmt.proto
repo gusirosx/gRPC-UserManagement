@@ -8,21 +8,25 @@ service UserManagement{
     rpc CreateNewUser (NewUser) returns (User){}
     rpc GetUsers (GetUsersParams) returns (UserList){}
 }
+
 message NewUser{
     string name = 1;
     int32 age =2;
 }
+
 message User {
     string name = 1;
     int32 age = 2;
     int32 id = 3;
 }
+
 // Empty message (for now) for backward compatibility 
 message GetUsersParams{
 
 }
+
+/* Repeatead keyword is sommeting that we use return a list of sommething inside a protomessage
+   you can return a list of integers, strings or in this case a list of users message type */
 message UserList{
     repeated User users = 1;
 }
-//Repeatead keyword is sommeting that we use return a list of sommething inside a protomessage
-// you can return a list of integers, strings or in this case a list of users message type

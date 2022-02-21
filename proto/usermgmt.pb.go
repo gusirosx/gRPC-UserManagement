@@ -177,6 +177,8 @@ func (*GetUsersParams) Descriptor() ([]byte, []int) {
 	return file_proto_usermgmt_proto_rawDescGZIP(), []int{2}
 }
 
+// Repeatead keyword is sommeting that we use return a list of sommething inside a protomessage
+//you can return a list of integers, strings or in this case a list of users message type
 type UserList struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache

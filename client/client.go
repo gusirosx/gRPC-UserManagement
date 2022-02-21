@@ -42,7 +42,7 @@ func CreateNewUser(ctx *gin.Context) {
 		log.Fatal("Error when calling GetUser:", err.Error())
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"response": response})
+	ctx.JSON(http.StatusCreated, gin.H{"response": response})
 }
 
 func GetUsers(ctx *gin.Context) {
