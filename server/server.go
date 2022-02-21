@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	port = ":50051"
+	port = ":50050"
 )
 
 // A contructor for the usermanagement server type

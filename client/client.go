@@ -7,22 +7,14 @@ import (
 	"time"
 
 	pb "gRPC-usermngm/proto"
-
-	"google.golang.org/grpc"
-)
-
-const (
-	//Address of the grpc server
-	address = "localhost:50051"
 )
 
 func main() {
-	//dial a connection to grpc server
-	conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
+	// conn holds an open connection to the gRPC service
+	conn, err := Connection()
 	if err != nil {
-		log.Fatalf("did not connect: %v", err)
+		log.Printf("failed to dial server %s: %v", *serverAddr, err)
 	}
-	//withBlock() means that this function will not return until the connection is made
 	defer conn.Close()
 
 	//create a new client (to pass the connection to that function)
