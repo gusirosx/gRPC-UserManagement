@@ -18,7 +18,7 @@ func main() {
 	defer conn.Close()
 
 	//create a new client (to pass the connection to that function)
-	c := pb.NewUserManagementClient(conn)
+	client := pb.NewUserManagementClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 	var new_users = make(map[string]int32)
@@ -26,7 +26,7 @@ func main() {
 	new_users["Bob"] = 30
 	//call the create new user function by looping over the new users map
 	for name, age := range new_users {
-		r, err := c.CreateNewUser(ctx, &pb.NewUser{Name: name, Age: age})
+		r, err := client.CreateNewUser(ctx, &pb.NewUser{Name: name, Age: age})
 		//r - response from the grpc server
 		if err != nil {
 			log.Fatalf("could not create user: %v", err)
@@ -39,7 +39,7 @@ func main() {
 	}
 	// Initialize an empty message as input to the call to get users
 	params := &pb.GetUsersParams{}
-	r, err := c.GetUsers(ctx, params)
+	r, err := client.GetUsers(ctx, params)
 	if err != nil {
 		log.Fatalf("could not retrieve users: %v", err)
 	}
