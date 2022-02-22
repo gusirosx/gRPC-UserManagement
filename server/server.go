@@ -93,10 +93,13 @@ func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersPara
 
 func main() {
 	//First instatiate a new User Management Server
-	//database_url := "postgres://username:password@localhost:5432/database_name"
-	database_url := "postgres://bob:admin@localhost:5432/postgres"
+	password := os.Getenv("PG_PASS")
+	user := os.Getenv("PG_USER")
+	dbName := os.Getenv("PG_DB_PG")
+	host := os.Getenv("PG_HOST")
+	connection := fmt.Sprintf("postgres://%s:%s@%s:5432/%s", user, password, host, dbName)
 	var user_mgmt_server *UserManagementServer = NewUserManagementServer()
-	conn, err := pgx.Connect(context.Background(), database_url)
+	conn, err := pgx.Connect(context.Background(), connection)
 	if err != nil {
 		log.Fatalf("Unable to establish connection: %v", err)
 	}
@@ -107,3 +110,20 @@ func main() {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
+
+// _ "github.com/lib/pq"
+// )
+
+// // Get the environment credentials and opens a connection with the database
+// func DbConect() *sql.DB {
+// 	password := os.Getenv("PG_PASS")
+// 	user := os.Getenv("PG_USER")
+// 	dbName := os.Getenv("PG_DB_STORE")
+// 	host := os.Getenv("PG_HOST")
+// 	connection := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
+// 	db, err := sql.Open("postgres", connection)
+// 	if err != nil {
+// 		log.Println("Unable to connect:" + err.Error())
+// 	}
+// 	return db
+// }

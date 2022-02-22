@@ -23,3 +23,11 @@ $ go run client/client.go
 ```sh
 $ make generate
 ```
+
+## Input
+```json
+{
+    "name":"Gustavo",
+    "age":27
+}
+```
