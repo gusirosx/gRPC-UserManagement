@@ -33,3 +33,9 @@ http://localhost:8081/users
 ```
 
 //http://localhost:8081/users?UID=10
+
+{
+	"name":"Gustavo Silva Rodrigues",
+	"age": 27,
+    "id":35
+}

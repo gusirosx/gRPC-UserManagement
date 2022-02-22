@@ -46,6 +46,53 @@ func CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"response": response})
 }
 
+func GetUsers(ctx *gin.Context) {
+	if len(ctx.Request.URL.Query()) == 0 {
+		GetAllUsers(ctx)
+	} else {
+		GetUser(ctx)
+	}
+}
+
+func GetUser(ctx *gin.Context) {
+	client := GetClient()
+	defer conn.Close()
+
+	values := ctx.Request.URL.Query()
+	if _, ok := values["UID"]; ok {
+		id, _ := strconv.Atoi(values["UID"][0])
+		response, err := client.GetUser(ctx, &pb.UserID{Id: int32(id)})
+		if err != nil {
+			log.Println("Unable to retrieved the selected user: ", err.Error())
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to delete the selected user:" + err.Error()})
+		} else {
+			// this call should retur an array of users that are stored within the user management servers
+			log.Println("User successfully retrieved: ", response.Name)
+			ctx.JSON(http.StatusOK, gin.H{
+				"success": "User successfully retrieved",
+				"userID":  response,
+			})
+		}
+	} else {
+		log.Println("Invalid search parameters")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid search parameters"})
+	}
+}
+
+func GetAllUsers(ctx *gin.Context) {
+	client := GetClient()
+	defer conn.Close()
+
+	// Initialize an empty message as input to the call to get users
+	params := &pb.GetUsersParams{}
+	response, err := client.GetUsers(ctx, params)
+	if err != nil {
+		log.Fatalf("could not retrieve users: %v", err)
+	}
+	// this call should retur an array of users that are stored within the user management servers
+	ctx.JSON(http.StatusOK, gin.H{"response": response})
+}
+
 func UpdateUser(ctx *gin.Context) {
 	client := GetClient()
 	defer conn.Close()
@@ -92,54 +139,6 @@ func DeleteUser(ctx *gin.Context) {
 			"userID":  response.Id,
 		})
 	}
-
-}
-
-func GetUsers(ctx *gin.Context) {
-	if len(ctx.Request.URL.Query()) == 0 {
-		GetAllUsers(ctx)
-	} else {
-		GetUser(ctx)
-	}
-}
-
-func GetUser(ctx *gin.Context) {
-	client := GetClient()
-	defer conn.Close()
-
-	values := ctx.Request.URL.Query()
-	if _, ok := values["UID"]; ok {
-		id, _ := strconv.Atoi(values["UID"][0])
-		response, err := client.GetUser(ctx, &pb.UserID{Id: int32(id)})
-		if err != nil {
-			log.Println("Unable to retrieved the selected user: ", err.Error())
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to delete the selected user:" + err.Error()})
-		} else {
-			// this call should retur an array of users that are stored within the user management servers
-			log.Println("User successfully retrieved: ", response.Name)
-			ctx.JSON(http.StatusOK, gin.H{
-				"success": "User successfully retrieved",
-				"userID":  response,
-			})
-		}
-	} else {
-		log.Println("Invalid search parameters")
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid search parameters"})
-	}
-}
-
-func GetAllUsers(ctx *gin.Context) {
-	client := GetClient()
-	defer conn.Close()
-
-	// Initialize an empty message as input to the call to get users
-	params := &pb.GetUsersParams{}
-	response, err := client.GetUsers(ctx, params)
-	if err != nil {
-		log.Fatalf("could not retrieve users: %v", err)
-	}
-	// this call should retur an array of users that are stored within the user management servers
-	ctx.JSON(http.StatusOK, gin.H{"response": response})
 }
 
 func main() {

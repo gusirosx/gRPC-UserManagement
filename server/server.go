@@ -29,22 +29,6 @@ type UserManagementServer struct {
 	pb.UnimplementedUserManagementServer
 }
 
-//Receiver function of the User Management Type
-func (server *UserManagementServer) Run() error {
-	//Begin listening on the port specified
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-	srv := grpc.NewServer()
-	//register the server as a new grpc service
-	pb.RegisterUserManagementServer(srv, server)
-	log.Printf("server listening at %v", lis.Addr())
-	// Register reflection service on gRPC server.
-	reflection.Register(srv)
-	return srv.Serve(lis) //return the server
-}
-
 // When CreateNewUser function is called we should append any new users to the user management server user_list
 // When user is added, read full userlist from file into userlist struct, then append new user and write new userlist back to file
 func (server *UserManagementServer) CreateUser(ctx context.Context, in *pb.NewUser) (*pb.User, error) {
@@ -57,30 +41,6 @@ func (server *UserManagementServer) CreateUser(ctx context.Context, in *pb.NewUs
 	comand.Exec(user.Name, user.Age)
 
 	return user, nil
-}
-
-func (server *UserManagementServer) UpdateUser(ctx context.Context, in *pb.User) (*pb.User, error) {
-	log.Printf("Received: %v", in.GetName())
-	user := &pb.User{Name: in.GetName(), Age: in.GetAge(), Id: in.GetId()}
-	comand, err := server.conn.Prepare("update users set name=$1, age=$2 where id=$3")
-	if err != nil {
-		log.Println("Unable to insert data:", err.Error())
-	}
-	comand.Exec(user.Name, user.Age, user.Id)
-
-	return user, nil
-}
-
-func (server *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
-	coman, err := server.conn.Prepare("delete from users where id=$1")
-	if err != nil {
-		log.Println("Unable to delete user:", err.Error())
-		return nil, err
-	}
-	coman.Exec(u.GetId())
-	log.Printf("Deleted user: %v", u.GetId())
-
-	return &pb.UserID{Id: u.GetId()}, nil
 }
 
 func (server *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.User, error) {
@@ -116,6 +76,46 @@ func (server *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUser
 		usersList.Users = append(usersList.Users, &user)
 	}
 	return usersList, nil
+}
+
+func (server *UserManagementServer) UpdateUser(ctx context.Context, in *pb.User) (*pb.User, error) {
+	log.Printf("Received: %v", in.GetName())
+	user := &pb.User{Name: in.GetName(), Age: in.GetAge(), Id: in.GetId()}
+	comand, err := server.conn.Prepare("update users set name=$1, age=$2 where id=$3")
+	if err != nil {
+		log.Println("Unable to insert data:", err.Error())
+	}
+	comand.Exec(user.Name, user.Age, user.Id)
+
+	return user, nil
+}
+
+func (server *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
+	coman, err := server.conn.Prepare("delete from users where id=$1")
+	if err != nil {
+		log.Println("Unable to delete user:", err.Error())
+		return nil, err
+	}
+	coman.Exec(u.GetId())
+	log.Printf("Deleted user: %v", u.GetId())
+
+	return &pb.UserID{Id: u.GetId()}, nil
+}
+
+//Receiver function of the User Management Type
+func (server *UserManagementServer) Run() error {
+	//Begin listening on the port specified
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	srv := grpc.NewServer()
+	//register the server as a new grpc service
+	pb.RegisterUserManagementServer(srv, server)
+	log.Printf("server listening at %v", lis.Addr())
+	// Register reflection service on gRPC server.
+	reflection.Register(srv)
+	return srv.Serve(lis) //return the server
 }
 
 func main() {
