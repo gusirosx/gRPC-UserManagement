@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
-	"os"
 
 	pb "gRPC-usermngm/proto"
 
@@ -78,36 +76,14 @@ func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersPara
 }
 
 func main() {
-	//First instatiate a new User Management Server
-	var server *UserManagementServer = NewUserManagementServer()
-
-	// password := os.Getenv("PG_PASS")
-	// user := os.Getenv("PG_USER")
-	// dbName := os.Getenv("PG_DB_PG")
-	// host := os.Getenv("PG_HOST")
-	// connection := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
-	// conn, err := sql.Open("postgres", connection)
-	// if err != nil {
-	// 	log.Println("Unable to establish connection:", err.Error())
-	// }
+	//Get a connection to the postgres database
 	conn := PgConnect()
 	defer conn.Close()
 
+	//First instatiate a new User Management Server
+	var server *UserManagementServer = NewUserManagementServer()
 	server.conn = conn
 	if err := server.Run(); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-}
-
-func PgConnect() *sql.DB {
-	password := os.Getenv("PG_PASS")
-	user := os.Getenv("PG_USER")
-	dbName := os.Getenv("PG_DB_PG")
-	host := os.Getenv("PG_HOST")
-	connStr := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
-	connection, err := sql.Open("postgres", connStr)
-	if err != nil {
-		log.Println("Unable to establish connection:", err.Error())
-	}
-	return connection
 }

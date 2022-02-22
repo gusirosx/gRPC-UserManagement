@@ -23,7 +23,7 @@ $ go run client/client.go
 ```sh
 $ make generate
 ```
-
+http://localhost:8081/users
 ## Input
 ```json
 {
