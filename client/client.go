@@ -45,6 +45,32 @@ func CreateNewUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, gin.H{"response": response})
 }
 
+func DeleteUser(ctx *gin.Context) {
+	client := GetClient()
+	defer conn.Close()
+	var user pb.User
+	// Call BindJSON to bind the received JSON to user
+	err := ctx.BindJSON(&user)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Println(err.Error())
+		return
+	}
+	// Initialize an empty message as input to the call to get users
+	response, err := client.DeleteUser(ctx, &pb.DelUser{Id: user.Id})
+	if err != nil {
+		log.Fatalf("could not delete the selected user: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{"error": "could not delete the selected user:" + err.Error()})
+	} else {
+		// this call should retur an array of users that are stored within the user management servers
+		ctx.JSON(http.StatusOK, gin.H{
+			"success": "User successfully deleted",
+			"userID":  response.Id,
+		})
+	}
+
+}
+
 func GetUsers(ctx *gin.Context) {
 	client := GetClient()
 	defer conn.Close()
@@ -69,6 +95,7 @@ func main() {
 
 	router.POST("/users", CreateNewUser)
 	router.GET("/users", GetUsers)
+	router.DELETE("/test", DeleteUser)
 
 	// Run http server
 	if err := router.Run(":8081"); err != nil {

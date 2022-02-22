@@ -7,6 +7,8 @@ package proto;
 service UserManagement{
     rpc CreateNewUser (NewUser) returns (User){}
     rpc GetUsers (GetUsersParams) returns (UserList){}
+    rpc DeleteUser(DelUser) returns(User){}
+    rpc GetUser (UserID)returns(User){}
 }
 
 message NewUser{
@@ -18,6 +20,14 @@ message User {
     string name = 1;
     int32 age = 2;
     int32 id = 3;
+}
+
+message DelUser{
+    int32 id = 1;
+}
+
+message UserID{
+    int32 id = 1;
 }
 
 // Empty message (for now) for backward compatibility 

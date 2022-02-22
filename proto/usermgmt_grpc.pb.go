@@ -24,6 +24,8 @@ const _ = grpc.SupportPackageIsVersion7
 type UserManagementClient interface {
 	CreateNewUser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error)
 	GetUsers(ctx context.Context, in *GetUsersParams, opts ...grpc.CallOption) (*UserList, error)
+	DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*User, error)
+	GetUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
 }
 
 type userManagementClient struct {
@@ -52,12 +54,32 @@ func (c *userManagementClient) GetUsers(ctx context.Context, in *GetUsersParams,
 	return out, nil
 }
 
+func (c *userManagementClient) DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, "/proto.UserManagement/DeleteUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userManagementClient) GetUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, "/proto.UserManagement/GetUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserManagementServer is the server API for UserManagement service.
 // All implementations must embed UnimplementedUserManagementServer
 // for forward compatibility
 type UserManagementServer interface {
 	CreateNewUser(context.Context, *NewUser) (*User, error)
 	GetUsers(context.Context, *GetUsersParams) (*UserList, error)
+	DeleteUser(context.Context, *DelUser) (*User, error)
+	GetUser(context.Context, *UserID) (*User, error)
 	mustEmbedUnimplementedUserManagementServer()
 }
 
@@ -70,6 +92,12 @@ func (UnimplementedUserManagementServer) CreateNewUser(context.Context, *NewUser
 }
 func (UnimplementedUserManagementServer) GetUsers(context.Context, *GetUsersParams) (*UserList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
+func (UnimplementedUserManagementServer) DeleteUser(context.Context, *DelUser) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
+}
+func (UnimplementedUserManagementServer) GetUser(context.Context, *UserID) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
 func (UnimplementedUserManagementServer) mustEmbedUnimplementedUserManagementServer() {}
 
@@ -120,6 +148,42 @@ func _UserManagement_GetUsers_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserManagement_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DelUser)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserManagementServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.UserManagement/DeleteUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserManagementServer).DeleteUser(ctx, req.(*DelUser))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserManagement_GetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserID)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserManagementServer).GetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.UserManagement/GetUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserManagementServer).GetUser(ctx, req.(*UserID))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserManagement_ServiceDesc is the grpc.ServiceDesc for UserManagement service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +198,14 @@ var UserManagement_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsers",
 			Handler:    _UserManagement_GetUsers_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _UserManagement_DeleteUser_Handler,
+		},
+		{
+			MethodName: "GetUser",
+			Handler:    _UserManagement_GetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
