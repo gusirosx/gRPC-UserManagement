@@ -37,7 +37,7 @@ func CreateNewUser(ctx *gin.Context) {
 		log.Println(err.Error())
 		return
 	}
-	response, err := client.CreateNewUser(ctx, &user)
+	response, err := client.CreateUser(ctx, &user)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error when creating the user": err.Error()})
 		log.Fatal("Error when calling GetUser:", err.Error())

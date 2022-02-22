@@ -5,7 +5,7 @@ option go_package = "/gRPC-usermngm;gRPC_usermngm";
 package proto;
 
 service UserManagement{
-    rpc CreateNewUser (NewUser) returns (User){}
+    rpc CreateUser (NewUser) returns (User){}
     rpc GetUsers (GetUsersParams) returns (UserList){}
     rpc DeleteUser(DelUser) returns(UserID){}
     rpc GetUser (UserID)returns(User){}

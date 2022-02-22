@@ -47,10 +47,10 @@ func (server *UserManagementServer) Run() error {
 
 // When CreateNewUser function is called we should append any new users to the user management server user_list
 // When user is added, read full userlist from file into userlist struct, then append new user and write new userlist back to file
-func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser) (*pb.User, error) {
+func (server *UserManagementServer) CreateUser(ctx context.Context, in *pb.NewUser) (*pb.User, error) {
 	log.Printf("Received: %v", in.GetName())
 	user := &pb.User{Name: in.GetName(), Age: in.GetAge()}
-	comand, err := s.conn.Prepare("insert into users(name, age) values ($1,$2)")
+	comand, err := server.conn.Prepare("insert into users(name, age) values ($1,$2)")
 	if err != nil {
 		log.Println("Unable to insert data:", err.Error())
 	}
@@ -59,8 +59,8 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 	return user, nil
 }
 
-func (s *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
-	coman, err := s.conn.Prepare("delete from users where id=$1")
+func (server *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
+	coman, err := server.conn.Prepare("delete from users where id=$1")
 	if err != nil {
 		log.Println("Unable to delete user:", err.Error())
 		return nil, err
@@ -71,10 +71,10 @@ func (s *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*
 	return &pb.UserID{Id: u.GetId()}, nil
 }
 
-func (s *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.User, error) {
+func (server *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.User, error) {
 
 	var user *pb.User = &pb.User{}
-	comand, err := s.conn.Query("select * from users where id=$1", u.GetId())
+	comand, err := server.conn.Query("select * from users where id=$1", u.GetId())
 	if err != nil {
 		log.Println("Error:", err.Error())
 	}
@@ -88,9 +88,9 @@ func (s *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.U
 }
 
 // New Reciver function
-func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersParams) (*pb.UserList, error) {
+func (server *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersParams) (*pb.UserList, error) {
 	var usersList *pb.UserList = &pb.UserList{}
-	rows, err := s.conn.Query("select * from users")
+	rows, err := server.conn.Query("select * from users")
 	if err != nil {
 		return nil, err
 	}
