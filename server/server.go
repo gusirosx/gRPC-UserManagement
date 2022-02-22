@@ -60,7 +60,7 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 
 // New Reciver function
 func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersParams) (*pb.UserList, error) {
-	var users_list *pb.UserList = &pb.UserList{}
+	var usersList *pb.UserList = &pb.UserList{}
 	rows, err := s.conn.Query("select * from users")
 	if err != nil {
 		return nil, err
@@ -72,27 +72,42 @@ func (s *UserManagementServer) GetUsers(ctx context.Context, in *pb.GetUsersPara
 		if err != nil {
 			return nil, err
 		}
-		users_list.Users = append(users_list.Users, &user)
+		usersList.Users = append(usersList.Users, &user)
 	}
-	return users_list, nil
+	return usersList, nil
 }
 
 func main() {
 	//First instatiate a new User Management Server
-	password := os.Getenv("PG_PASS")
-	user := os.Getenv("PG_USER")
-	dbName := os.Getenv("PG_DB_PG")
-	host := os.Getenv("PG_HOST")
 	var server *UserManagementServer = NewUserManagementServer()
 
-	connection := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
-	conn, err := sql.Open("postgres", connection)
-	if err != nil {
-		log.Println("Unable to establish connection::", err.Error())
-	}
+	// password := os.Getenv("PG_PASS")
+	// user := os.Getenv("PG_USER")
+	// dbName := os.Getenv("PG_DB_PG")
+	// host := os.Getenv("PG_HOST")
+	// connection := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
+	// conn, err := sql.Open("postgres", connection)
+	// if err != nil {
+	// 	log.Println("Unable to establish connection:", err.Error())
+	// }
+	conn := PgConnect()
 	defer conn.Close()
+
 	server.conn = conn
 	if err := server.Run(); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+func PgConnect() *sql.DB {
+	password := os.Getenv("PG_PASS")
+	user := os.Getenv("PG_USER")
+	dbName := os.Getenv("PG_DB_PG")
+	host := os.Getenv("PG_HOST")
+	connStr := fmt.Sprintf("user=%s dbname=%s password=%s host=%s sslmode=disable", user, dbName, password, host)
+	connection, err := sql.Open("postgres", connStr)
+	if err != nil {
+		log.Println("Unable to establish connection:", err.Error())
+	}
+	return connection
 }
