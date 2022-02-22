@@ -26,7 +26,7 @@ func GetClient() pb.UserManagementClient {
 }
 
 // Function to create a new user
-func CreateNewUser(ctx *gin.Context) {
+func CreateUser(ctx *gin.Context) {
 	client := GetClient()
 	defer conn.Close()
 	var user pb.NewUser
@@ -44,6 +44,29 @@ func CreateNewUser(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{"response": response})
+}
+
+func UpdateUser(ctx *gin.Context) {
+	client := GetClient()
+	defer conn.Close()
+	var user pb.User
+	// Call BindJSON to bind the received JSON to user
+	err := ctx.BindJSON(&user)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		log.Println(err.Error())
+		return
+	}
+	response, err := client.UpdateUser(ctx, &user)
+	if err != nil {
+		log.Println("Unable to update the selected user: ", err.Error())
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to update the selected user:" + err.Error()})
+	} else {
+		ctx.JSON(http.StatusAccepted, gin.H{
+			"success": "User successfully updated",
+			"userID":  response,
+		})
+	}
 }
 
 func DeleteUser(ctx *gin.Context) {
@@ -64,7 +87,7 @@ func DeleteUser(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to delete the selected user:" + err.Error()})
 	} else {
 		// this call should retur an array of users that are stored within the user management servers
-		ctx.JSON(http.StatusOK, gin.H{
+		ctx.JSON(http.StatusAccepted, gin.H{
 			"success": "User successfully deleted",
 			"userID":  response.Id,
 		})
@@ -127,9 +150,9 @@ func main() {
 		fmt.Fprintln(ctx.Writer, "Up and running...")
 	})
 	router.GET("/users", GetUsers)
-	router.POST("/users", CreateNewUser)
-
-	router.DELETE("/test", DeleteUser)
+	router.POST("/users", CreateUser)
+	router.PUT("/users", UpdateUser)
+	router.DELETE("/users", DeleteUser)
 
 	// Run http server
 	if err := router.Run(":8081"); err != nil {

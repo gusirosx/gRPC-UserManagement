@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserManagementClient interface {
 	CreateUser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error)
 	GetUsers(ctx context.Context, in *GetUsersParams, opts ...grpc.CallOption) (*UserList, error)
+	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error)
 	DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*UserID, error)
 	GetUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
 }
@@ -54,6 +55,15 @@ func (c *userManagementClient) GetUsers(ctx context.Context, in *GetUsersParams,
 	return out, nil
 }
 
+func (c *userManagementClient) UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
+	err := c.cc.Invoke(ctx, "/proto.UserManagement/UpdateUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userManagementClient) DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*UserID, error) {
 	out := new(UserID)
 	err := c.cc.Invoke(ctx, "/proto.UserManagement/DeleteUser", in, out, opts...)
@@ -78,6 +88,7 @@ func (c *userManagementClient) GetUser(ctx context.Context, in *UserID, opts ...
 type UserManagementServer interface {
 	CreateUser(context.Context, *NewUser) (*User, error)
 	GetUsers(context.Context, *GetUsersParams) (*UserList, error)
+	UpdateUser(context.Context, *User) (*User, error)
 	DeleteUser(context.Context, *DelUser) (*UserID, error)
 	GetUser(context.Context, *UserID) (*User, error)
 	mustEmbedUnimplementedUserManagementServer()
@@ -92,6 +103,9 @@ func (UnimplementedUserManagementServer) CreateUser(context.Context, *NewUser) (
 }
 func (UnimplementedUserManagementServer) GetUsers(context.Context, *GetUsersParams) (*UserList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
+func (UnimplementedUserManagementServer) UpdateUser(context.Context, *User) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 func (UnimplementedUserManagementServer) DeleteUser(context.Context, *DelUser) (*UserID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
@@ -148,6 +162,24 @@ func _UserManagement_GetUsers_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserManagement_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(User)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserManagementServer).UpdateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.UserManagement/UpdateUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserManagementServer).UpdateUser(ctx, req.(*User))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserManagement_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DelUser)
 	if err := dec(in); err != nil {
@@ -198,6 +230,10 @@ var UserManagement_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsers",
 			Handler:    _UserManagement_GetUsers_Handler,
+		},
+		{
+			MethodName: "UpdateUser",
+			Handler:    _UserManagement_UpdateUser_Handler,
 		},
 		{
 			MethodName: "DeleteUser",

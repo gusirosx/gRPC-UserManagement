@@ -59,6 +59,18 @@ func (server *UserManagementServer) CreateUser(ctx context.Context, in *pb.NewUs
 	return user, nil
 }
 
+func (server *UserManagementServer) UpdateUser(ctx context.Context, in *pb.User) (*pb.User, error) {
+	log.Printf("Received: %v", in.GetName())
+	user := &pb.User{Name: in.GetName(), Age: in.GetAge(), Id: in.GetId()}
+	comand, err := server.conn.Prepare("update users set name=$1, age=$2 where id=$3")
+	if err != nil {
+		log.Println("Unable to insert data:", err.Error())
+	}
+	comand.Exec(user.Name, user.Age, user.Id)
+
+	return user, nil
+}
+
 func (server *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
 	coman, err := server.conn.Prepare("delete from users where id=$1")
 	if err != nil {
