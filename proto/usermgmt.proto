@@ -7,7 +7,7 @@ package proto;
 service UserManagement{
     rpc CreateNewUser (NewUser) returns (User){}
     rpc GetUsers (GetUsersParams) returns (UserList){}
-    rpc DeleteUser(DelUser) returns(User){}
+    rpc DeleteUser(DelUser) returns(UserID){}
     rpc GetUser (UserID)returns(User){}
 }
 

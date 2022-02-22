@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	pb "gRPC-usermngm/proto"
 
@@ -59,8 +60,8 @@ func DeleteUser(ctx *gin.Context) {
 	// Initialize an empty message as input to the call to get users
 	response, err := client.DeleteUser(ctx, &pb.DelUser{Id: user.Id})
 	if err != nil {
-		log.Fatalf("could not delete the selected user: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusOK, gin.H{"error": "could not delete the selected user:" + err.Error()})
+		log.Println("Unable to delete the selected user: ", err.Error())
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to delete the selected user:" + err.Error()})
 	} else {
 		// this call should retur an array of users that are stored within the user management servers
 		ctx.JSON(http.StatusOK, gin.H{
@@ -72,6 +73,39 @@ func DeleteUser(ctx *gin.Context) {
 }
 
 func GetUsers(ctx *gin.Context) {
+	if len(ctx.Request.URL.Query()) == 0 {
+		GetAllUsers(ctx)
+	} else {
+		GetUser(ctx)
+	}
+}
+
+func GetUser(ctx *gin.Context) {
+	client := GetClient()
+	defer conn.Close()
+
+	values := ctx.Request.URL.Query()
+	if _, ok := values["UID"]; ok {
+		id, _ := strconv.Atoi(values["UID"][0])
+		response, err := client.GetUser(ctx, &pb.UserID{Id: int32(id)})
+		if err != nil {
+			log.Println("Unable to retrieved the selected user: ", err.Error())
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "unable to delete the selected user:" + err.Error()})
+		} else {
+			// this call should retur an array of users that are stored within the user management servers
+			log.Println("User successfully retrieved: ", response.Name)
+			ctx.JSON(http.StatusOK, gin.H{
+				"success": "User successfully retrieved",
+				"userID":  response,
+			})
+		}
+	} else {
+		log.Println("Invalid search parameters")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Invalid search parameters"})
+	}
+}
+
+func GetAllUsers(ctx *gin.Context) {
 	client := GetClient()
 	defer conn.Close()
 
@@ -92,9 +126,9 @@ func main() {
 	router.GET("/", func(ctx *gin.Context) {
 		fmt.Fprintln(ctx.Writer, "Up and running...")
 	})
-
-	router.POST("/users", CreateNewUser)
 	router.GET("/users", GetUsers)
+	router.POST("/users", CreateNewUser)
+
 	router.DELETE("/test", DeleteUser)
 
 	// Run http server

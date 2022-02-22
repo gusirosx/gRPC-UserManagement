@@ -59,28 +59,16 @@ func (s *UserManagementServer) CreateNewUser(ctx context.Context, in *pb.NewUser
 	return user, nil
 }
 
-func (s *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.User, error) {
-
-	var user *pb.User = &pb.User{}
-	comand, err := s.conn.Query("select * from users where id=$1", u.GetId())
-	if err != nil {
-		log.Println("Error:", err.Error())
-	}
-	for comand.Next() {
-		err = comand.Scan(&user.Id, &user.Name, &user.Age)
-		if err != nil {
-			log.Println("Error:", err.Error())
-		}
-	}
-
+func (s *UserManagementServer) DeleteUser(ctx context.Context, u *pb.DelUser) (*pb.UserID, error) {
 	coman, err := s.conn.Prepare("delete from users where id=$1")
 	if err != nil {
 		log.Println("Unable to delete user:", err.Error())
 		return nil, err
 	}
-	coman.Exec(user.Id)
-	log.Printf("Deleted user: %v", u.Id)
-	return user, nil
+	coman.Exec(u.GetId())
+	log.Printf("Deleted user: %v", u.GetId())
+
+	return &pb.UserID{Id: u.GetId()}, nil
 }
 
 func (s *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.User, error) {
@@ -96,7 +84,6 @@ func (s *UserManagementServer) GetUser(ctx context.Context, u *pb.UserID) (*pb.U
 			log.Println("Error:", err.Error())
 		}
 	}
-
 	return user, nil
 }
 

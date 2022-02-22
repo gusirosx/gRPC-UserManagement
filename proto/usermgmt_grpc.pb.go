@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type UserManagementClient interface {
 	CreateNewUser(ctx context.Context, in *NewUser, opts ...grpc.CallOption) (*User, error)
 	GetUsers(ctx context.Context, in *GetUsersParams, opts ...grpc.CallOption) (*UserList, error)
-	DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*User, error)
+	DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*UserID, error)
 	GetUser(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*User, error)
 }
 
@@ -54,8 +54,8 @@ func (c *userManagementClient) GetUsers(ctx context.Context, in *GetUsersParams,
 	return out, nil
 }
 
-func (c *userManagementClient) DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
+func (c *userManagementClient) DeleteUser(ctx context.Context, in *DelUser, opts ...grpc.CallOption) (*UserID, error) {
+	out := new(UserID)
 	err := c.cc.Invoke(ctx, "/proto.UserManagement/DeleteUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func (c *userManagementClient) GetUser(ctx context.Context, in *UserID, opts ...
 type UserManagementServer interface {
 	CreateNewUser(context.Context, *NewUser) (*User, error)
 	GetUsers(context.Context, *GetUsersParams) (*UserList, error)
-	DeleteUser(context.Context, *DelUser) (*User, error)
+	DeleteUser(context.Context, *DelUser) (*UserID, error)
 	GetUser(context.Context, *UserID) (*User, error)
 	mustEmbedUnimplementedUserManagementServer()
 }
@@ -93,7 +93,7 @@ func (UnimplementedUserManagementServer) CreateNewUser(context.Context, *NewUser
 func (UnimplementedUserManagementServer) GetUsers(context.Context, *GetUsersParams) (*UserList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
-func (UnimplementedUserManagementServer) DeleteUser(context.Context, *DelUser) (*User, error) {
+func (UnimplementedUserManagementServer) DeleteUser(context.Context, *DelUser) (*UserID, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedUserManagementServer) GetUser(context.Context, *UserID) (*User, error) {
