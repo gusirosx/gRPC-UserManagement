@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -35,11 +36,13 @@ func (server *UserManagementServer) Run() error {
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	s := grpc.NewServer() //Variable 's' is invoking the new server function from the grpc module
-	//After initialize this new server we're going to register the server as a new grpc service
-	pb.RegisterUserManagementServer(s, server)
+	srv := grpc.NewServer()
+	//register the server as a new grpc service
+	pb.RegisterUserManagementServer(srv, server)
 	log.Printf("server listening at %v", lis.Addr())
-	return s.Serve(lis) //Call the server
+	// Register reflection service on gRPC server.
+	reflection.Register(srv)
+	return srv.Serve(lis) //return the server
 }
 
 // When CreateNewUser function is called we should append any new users to the user management server user_list
