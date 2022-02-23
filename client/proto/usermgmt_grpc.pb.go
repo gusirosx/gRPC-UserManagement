@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.19.4
-// source: proto/usermgmt.proto
+// source: usermgmt.proto
 
 package gRPC_usermngm
 
@@ -245,5 +245,5 @@ var UserManagement_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/usermgmt.proto",
+	Metadata: "usermgmt.proto",
 }
